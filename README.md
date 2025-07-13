@@ -1,4 +1,4 @@
-This is just some experiments with WASM and FFI to see what can easily be done to make Javascript faster. The benchmark is the naive matrix multiplication algorithm (i.e. cubic complexity).
+This is just some experiments with WASM and FFI to see what can easily be done to make Javascript faster. The benchmark is the naive matrix multiplication algorithm (i.e. cubic complexity). The non-js implementations use float32, unlike the JS implementation. This may skew the results (especially if you aren't on x86, where the cost is almost identical save for memory/cache usage and vectorization), however I mostly wanted to test what could be done when single precision floats were sufficient.
 
 # How to use this
 
