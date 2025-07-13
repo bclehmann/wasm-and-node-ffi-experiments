@@ -2,6 +2,8 @@ This is just some experiments with WASM and FFI to see what can easily be done t
 
 # How to use this
 
+Ensure you have emscripten installed.
+
 run `setup.sh` to install any node dependencies
 
 run `build.sh` to build everything
@@ -9,3 +11,11 @@ run `build.sh` to build everything
 run `node index.js` to run the benchmark
 
 Note that the emscripten and and FFI implementations may benefit from `-ffast-math`, but this flag is evil and should only be used with caution.
+
+# Findings
+
+It appears that in this workload AssemblyScript doesn't offer any benefit over plain JS. However other workloads may benefit more. It was by far the easiest to set up.
+
+Emscripten and the Node Addons API were almost equivalent in terms of performance, at least on this workload. However it's relatively easy to make WASM run out of memory, and at least using emscripten without any other libraries was by far the most difficult to set up. Other workloads may expose the difference between Napi and WASM more strongly.
+
+That makes the Node Addons API my favourite. It was more code than anything else here, but it was extremely straight-forward and logical. However, it may be more difficult to distribute as a package on NPM (and of course it's not an option in the browser). It was also very nice to be able to just write C++ code which receives and returns JS objects, other node FFI options appear to have a conversion step which may not be as performant or as convenient.
