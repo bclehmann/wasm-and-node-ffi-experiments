@@ -1,5 +1,8 @@
 import { naiveMatrixMultiplication as naiveMatrixMultiplicationAssemblyScript } from './assembly-script/build/release.js';
 import * as emscriptenModule from './emscripten/a.out.js';
+import * as ffi from './ffi/lib/binding.js';
+
+const naiveMatrixMultiplicationFfi = ffi.default;
 
 function mallocAndAssignMatrices(matrices) {
     return matrices.map(matrix => {
@@ -87,6 +90,19 @@ function jsFib(nth) {
     console.log(`JS fib(${nth}): Execution time: ${end - start} ms`);
 }
 
+function ffiFib(nth) {
+    const start = performance.now();
+    const A = new Float32Array([1, 1, 1, 0]);
+    let B = new Float32Array([1, 0]);
+    const [m, n, p] = [2, 2, 1];
+    for (let i = 0; i < nth - 1; i++) {
+        B = naiveMatrixMultiplicationFfi(A, B, n, m, p);
+    }
+    const end = performance.now();
+    console.log(B);
+    console.log(`FFI fib(${nth}): Execution time: ${end - start} ms`);
+}
+
 function getSquareMatrix(N) {
     const A = Array.from({ length: N * N }, () => Math.random());
     const B = Array.from({ length: N * N }, () => Math.random());
@@ -125,14 +141,37 @@ function squareMatrixEmscripten(N) {
     console.log(`Emscripten square matrix multiplication (${N}x${N}): Execution time: ${end - start} ms`);
 }
 
-for (let i = 0; i < 40; i++) {
+function squareMatrixFfi(N) {
+    const { A: aarr, B: barr } = getSquareMatrix(N);
+    const A = new Float32Array(aarr);
+    const B = new Float32Array(barr);
+
+    const start = performance.now();
+    const c = naiveMatrixMultiplicationFfi(A, B, N, N, N);
+    const end = performance.now();
+    console.log(`FFI square matrix multiplication (${N}x${N}): Execution time: ${end - start} ms`);
+}
+
+console.log('Fibonacci Tests:');
+console.log('------------------');
+
+// NOTE: Past fib(36) the f32 variants will lose enough precision that they are wrong when rounded to integers
+// Still, I want to test iterated small matrix multiplication, so its a fine benchmark
+for (let i = 0; i < 100; i++) {
     assemblyScriptFib(i);
     jsFib(i);
     emscriptenFib(i);
+    ffiFib(i);
+    console.log('---');
 }
+
+console.log('Square Matrix Multiplication Tests:');
+console.log('-----------------------------------');
 
 for (const i of [10, 50, 100, 200, 500, 1000]) {
     squareMatrixAssemblyScript(i);
     squareMatrixJS(i);
     squareMatrixEmscripten(i);
+    squareMatrixFfi(i);
+    console.log('---');
 }
