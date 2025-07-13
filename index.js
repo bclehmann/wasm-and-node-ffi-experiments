@@ -125,11 +125,11 @@ function squareMatrixEmscripten(N) {
     console.log(`Emscripten square matrix multiplication (${N}x${N}): Execution time: ${end - start} ms`);
 }
 
-const N = 40;
-
-assemblyScriptFib(N);
-jsFib(N);
-emscriptenFib(N);
+for (let i = 0; i < 40; i++) {
+    assemblyScriptFib(i);
+    jsFib(i);
+    emscriptenFib(i);
+}
 
 for (const i of [10, 50, 100, 200, 500, 1000]) {
     squareMatrixAssemblyScript(i);
