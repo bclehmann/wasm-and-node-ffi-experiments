@@ -1,3 +1,6 @@
+CFLAGS += -Wall -Wextra -Wpedantic -O3
+CXXFLAGS += -Wall -Wextra -Wpedantic -O3
+
 # We borrow heavily from the kernel build setup, though we are simpler since
 # we don't have Kconfig tweaking settings on us.
 
