@@ -104,14 +104,18 @@ function ffiFib(nth) {
 }
 
 function getSquareMatrix(N) {
-    const A = Array.from({ length: N * N }, () => Math.random());
-    const B = Array.from({ length: N * N }, () => Math.random());
+    return Array.from({ length: N * N }, () => Math.random());
+}
+
+function getSquareMatrices(N) {
+    const A = getSquareMatrix(N);
+    const B = getSquareMatrix(N);
 
     return { A, B }
 }
 
 function squareMatrixAssemblyScript(N) {
-    const { A: aarr, B: barr } = getSquareMatrix(N);
+    const { A: aarr, B: barr } = getSquareMatrices(N);
     const a = new Float32Array(aarr);
     const b = new Float32Array(barr);
     const start = performance.now();
@@ -121,7 +125,7 @@ function squareMatrixAssemblyScript(N) {
 }
 
 function squareMatrixJS(N) {
-    const { A, B} = getSquareMatrix(N);
+    const { A, B} = getSquareMatrices(N);
     const start = performance.now();
     const c = naiveMatrixMultiplicationAssemblyScript(A, B, N, N, N);
     const end = performance.now();
@@ -129,7 +133,7 @@ function squareMatrixJS(N) {
 }
 
 function squareMatrixEmscripten(N) {
-    const { A, B } = getSquareMatrix(N);
+    const { A, B } = getSquareMatrices(N);
     const C = Array(N * N).fill(0);
     const [a_ptr, b_ptr, c_ptr] = mallocAndAssignMatrices([A, B, C]);
 
@@ -142,7 +146,7 @@ function squareMatrixEmscripten(N) {
 }
 
 function squareMatrixFfi(N) {
-    const { A: aarr, B: barr } = getSquareMatrix(N);
+    const { A: aarr, B: barr } = getSquareMatrices(N);
     const A = new Float32Array(aarr);
     const B = new Float32Array(barr);
 
@@ -150,6 +154,61 @@ function squareMatrixFfi(N) {
     const c = naiveMatrixMultiplicationFfi(A, B, N, N, N);
     const end = performance.now();
     console.log(`FFI square matrix multiplication (${N}x${N}): Execution time: ${end - start} ms`);
+}
+
+function iteratedSquareMatrixAssemblyScript(N, iterations) {
+    const A = getSquareMatrix(N);
+    const B = A.slice();
+    let a = new Float32Array(A);
+    const b = new Float32Array(B);
+    
+    const start = performance.now();
+    for (let i = 0; i < iterations; i++) {
+        a = naiveMatrixMultiplicationAssemblyScript(a, b, N, N, N);
+    }
+    const end = performance.now();
+    console.log(`AssemblyScript iterated square matrix multiplication (${N}x${N}) for ${iterations} iterations: Execution time: ${end - start} ms`);
+}
+
+function iteratedSquareMatrixJS(N, iterations) {
+    let A = getSquareMatrix(N);
+    const B = A.slice();
+    
+    const start = performance.now();
+    for (let i = 0; i < iterations; i++) {
+        A = naiveMatrixMultiplicationAssemblyScript(A, B, N, N, N);
+    }
+    const end = performance.now();
+    console.log(`JS iterated square matrix multiplication (${N}x${N}) for ${iterations} iterations: Execution time: ${end - start} ms`);
+}
+
+function iteratedSquareMatrixEmscripten(N, iterations) {
+    const A = getSquareMatrix(N);
+    const B = A.slice();
+    const C = Array(N * N).fill(0);
+    const [a_ptr, b_ptr, c_ptr] = mallocAndAssignMatrices([A, B, C]);
+    
+    const start = performance.now();
+    for (let i = 0; i < iterations; i++) {
+        naiveMatrixMultiplicationEmscripten(a_ptr, b_ptr, c_ptr, N, N, N);
+        emscriptenModule.default.HEAPF32.set(emscriptenModule.default.HEAPF32.subarray(c_ptr / Float32Array.BYTES_PER_ELEMENT, (c_ptr + C.length * Float32Array.BYTES_PER_ELEMENT) / Float32Array.BYTES_PER_ELEMENT), a_ptr / Float32Array.BYTES_PER_ELEMENT);
+    }
+    freeMatrices([a_ptr, b_ptr, c_ptr]);
+    const end = performance.now();
+    console.log(`Emscripten iterated square matrix multiplication (${N}x${N}) for ${iterations} iterations: Execution time: ${end - start} ms`);
+}
+
+function iteratedSquareMatrixFfi(N, iterations) {
+    const A = getSquareMatrix(N);
+    const B = A.slice();
+    let a = new Float32Array(A);
+    const b = new Float32Array(B);
+    const start = performance.now();
+    for (let i = 0; i < iterations; i++) {
+        a = naiveMatrixMultiplicationFfi(a, b, N, N, N);
+    }
+    const end = performance.now();
+    console.log(`FFI iterated square matrix multiplication (${N}x${N}) for ${iterations} iterations: Execution time: ${end - start} ms`);
 }
 
 console.log('Fibonacci Tests:');
@@ -174,4 +233,17 @@ for (const i of [10, 50, 100, 200, 500, 1000]) {
     squareMatrixEmscripten(i);
     squareMatrixFfi(i);
     console.log('---');
+}
+
+console.log('Iterated square matrix multiplication tests');
+console.log('-----------------------------------');
+
+for (const N of [10, 50, 100, 200]) {
+    for (const iterations of [10, 50, 100, 500]) {
+        iteratedSquareMatrixAssemblyScript(N, iterations);
+        iteratedSquareMatrixJS(N, iterations);
+        iteratedSquareMatrixEmscripten(N, iterations);
+        iteratedSquareMatrixFfi(N, iterations);
+        console.log('---');
+    }
 }
