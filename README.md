@@ -19,3 +19,5 @@ It appears that in this workload AssemblyScript doesn't offer any benefit over p
 Emscripten and the Node Addons API were more competitive in terms of performance, at least on this workload. However it's relatively easy to make WASM run out of memory and it was still noticeably slower than NAPI. And using emscripten without any other libraries was by far the most difficult to set up.
 
 That makes the Node Addons API my favourite. It was more code than anything else here, but it was extremely straight-forward and logical. However, it may be more difficult to distribute as a package on NPM (and of course it's not an option in the browser). It was also very nice to be able to just write C++ code which receives and returns JS objects, other node FFI options appear to have a conversion step which may not be as performant or as convenient.
+
+I will note that the Node Addons API appears to be slower on an Arm Mac compared to emscripten.
