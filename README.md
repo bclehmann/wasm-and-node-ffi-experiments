@@ -20,4 +20,4 @@ Emscripten and the Node Addons API were more competitive in terms of performance
 
 That makes the Node Addons API my favourite. It was more code than anything else here, but it was extremely straight-forward and logical. However, it may be more difficult to distribute as a package on NPM (and of course it's not an option in the browser). It was also very nice to be able to just write C++ code which receives and returns JS objects, other node FFI options appear to have a conversion step which may not be as performant or as convenient.
 
-I will note that the Node Addons API appears to be slower on an Arm Mac compared to emscripten.
+I will note that the Node Addons API appears to be slower on an Arm Mac compared to emscripten. I'm unsure of the cause here, I will note that this Arm mac is much more powerful than the Intel Mac where I initially tested here, and it could just be that this is no longer a sufficiently difficult benchmark to expose meaningful performance differences, as emscripten is also not as far ahead of the JS implementation as it used to be.
